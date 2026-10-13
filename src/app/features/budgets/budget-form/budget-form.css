@@ -1,0 +1,12 @@
+.month-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.month-field dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}

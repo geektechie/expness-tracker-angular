@@ -1,0 +1,76 @@
+<div class="filter">
+  <button
+    #trigger
+    type="button"
+    class="btn btn-secondary trigger"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="open()"
+    (click)="toggle()"
+  >
+    <app-icon name="calendar" [size]="16" />
+    <span class="trigger-preset">{{ presetLabel() }}</span>
+    <span class="trigger-range">{{ rangeLabel() }}</span>
+  </button>
+
+  @if (open()) {
+    <div class="panel" role="dialog" aria-label="Choose a date range">
+      <ul class="presets">
+        @for (preset of presets; track preset.id) {
+          <li>
+            <button
+              type="button"
+              class="preset"
+              [attr.aria-pressed]="preset.id === activePresetId()"
+              (click)="choose(preset)"
+            >
+              <span class="check">
+                @if (preset.id === activePresetId()) {
+                  <app-icon name="check" [size]="16" [strokeWidth]="2.75" />
+                }
+              </span>
+              {{ preset.label }}
+            </button>
+          </li>
+        }
+      </ul>
+
+      <form class="custom" (submit)="applyCustom($event)">
+        <p class="custom-title">Custom range</p>
+        <div class="custom-fields">
+          <label class="field">
+            <span class="field-label">From</span>
+            <input
+              #fromInput
+              class="input"
+              type="date"
+              [value]="draftFrom()"
+              [attr.aria-invalid]="!!customError()"
+              [attr.aria-describedby]="customError() ? errorId : null"
+              (input)="draftFrom.set(fromInput.value)"
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">To</span>
+            <input
+              #toInput
+              class="input"
+              type="date"
+              [value]="draftTo()"
+              [attr.aria-invalid]="!!customError()"
+              [attr.aria-describedby]="customError() ? errorId : null"
+              (input)="draftTo.set(toInput.value)"
+            />
+          </label>
+        </div>
+        @if (customError(); as message) {
+          <p [id]="errorId" class="field-error" role="alert">{{ message }}</p>
+        }
+        <div class="custom-actions">
+          <button type="submit" class="btn btn-primary btn-sm" [disabled]="!!customError()">
+            Apply
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

@@ -1,0 +1,26 @@
+<div class="picker" role="group" aria-label="Month">
+
+  <button
+    type="button"
+    class="btn btn-secondary btn-icon"
+    aria-label="Previous month"
+    [attr.aria-disabled]="atMin() ? 'true' : null"
+    (click)="step(-1)"
+  >
+    <app-icon name="chevron-left" />
+  </button>
+  <span class="label" aria-live="polite">{{ label() }}</span>
+  <button
+    #next
+    type="button"
+    class="btn btn-secondary btn-icon"
+    aria-label="Next month"
+    [attr.aria-disabled]="atMax() ? 'true' : null"
+    (click)="step(1)"
+  >
+    <app-icon name="chevron-right" />
+  </button>
+  @if (!isCurrent()) {
+    <button type="button" class="btn btn-ghost btn-sm" (click)="goToCurrent()">This month</button>
+  }
+</div>

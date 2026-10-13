@@ -1,0 +1,234 @@
+<div class="page">
+  <app-page-header title="Expenses" subtitle="Everything you've spent, newest first.">
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="!categoriesLoaded()"
+      (click)="openCreate()"
+    >
+      <app-icon name="plus" [size]="16" />
+      New expense
+    </button>
+  </app-page-header>
+
+  @if (!initialLoad()) {
+
+    <div class="toolbar filters" role="search" aria-label="Filter expenses">
+      <label class="field filter-date">
+        <span class="field-label">From</span>
+        <input
+          #fromInput
+          class="input"
+          type="date"
+          [value]="fromFilter()"
+          (change)="setFrom(fromInput.value)"
+        />
+      </label>
+      <label class="field filter-date">
+        <span class="field-label">To</span>
+        <input
+          #toInput
+          class="input"
+          type="date"
+          [value]="toFilter()"
+          [class.is-invalid]="rangeError()"
+          [attr.aria-invalid]="!!rangeError()"
+          [attr.aria-describedby]="rangeError() ? 'expense-range-error' : null"
+          (change)="setTo(toInput.value)"
+        />
+      </label>
+      <label class="field filter-search">
+        <span class="field-label">Search</span>
+        <span class="search-box">
+          <app-icon name="search" [size]="16" class="search-icon" />
+          <input
+            #searchBox
+            class="input search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="Search descriptions and notes"
+            [attr.maxlength]="searchMaxLength"
+            [value]="searchInput()"
+            (input)="searchInput.set(searchBox.value)"
+          />
+        </span>
+      </label>
+      <label class="field filter-category">
+        <span class="field-label">Category</span>
+        <select #categorySelect class="select" (change)="setCategory(categorySelect.value)">
+          <option value="" [selected]="categoryFilter() === ''">All categories</option>
+          @for (category of categories(); track category.id) {
+            <option [value]="category.id" [selected]="category.id === categoryFilter()">
+              {{ category.isArchived ? category.name + ' (archived)' : category.name }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="field filter-payment">
+        <span class="field-label">Payment method</span>
+        <select #paymentSelect class="select" (change)="setPaymentMethod(paymentSelect.value)">
+          <option value="" [selected]="paymentFilter() === ''">All methods</option>
+          @for (method of paymentMethods; track method.value) {
+            <option [value]="method.value" [selected]="method.value === paymentFilter()">
+              {{ method.label }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="field filter-sort">
+        <span class="field-label">Sort</span>
+        <select #sortSelect class="select" (change)="setSort(sortSelect.value)">
+          @for (option of sorts; track option.value) {
+            <option [value]="option.value" [selected]="option.value === sort()">
+              {{ option.label }}
+            </option>
+          }
+        </select>
+      </label>
+      @if (filtersActive()) {
+        <button type="button" class="btn btn-ghost" (click)="clearFilters()">
+          <app-icon name="x" [size]="15" />
+          Clear filters
+        </button>
+      }
+
+      @if (rangeError(); as message) {
+        <p id="expense-range-error" class="field-error range-error" role="alert">{{ message }}</p>
+      }
+    </div>
+  }
+
+  <app-error-banner [error]="error()" (retry)="retry()" />
+  @if (initialLoad() && !error()) {
+    <p class="loading-note" role="status">Loading expenses…</p>
+  }
+
+  @if (showTable()) {
+    @if (result(); as paged) {
+
+      <section
+        #tableSection
+        class="card card-flush list-section"
+        tabindex="-1"
+        [class.is-refreshing]="refreshing()"
+        aria-label="Expenses"
+      >
+        @if (paged.totalCount === 0) {
+          @if (resultIsFiltered()) {
+            <app-empty-state
+              icon="search"
+              title="No expenses match these filters"
+              message="Try a wider date range, a different search, or fewer filters."
+            >
+              <button type="button" class="btn btn-secondary" (click)="clearFilters()">
+                Clear filters
+              </button>
+            </app-empty-state>
+          } @else {
+            <app-empty-state
+              icon="receipt"
+              title="No expenses yet"
+              message="Record what you spend and it will show up here, newest first."
+            >
+              <button
+                type="button"
+                class="btn btn-primary"
+                [disabled]="!categoriesLoaded()"
+                (click)="openCreate()"
+              >
+                New expense
+              </button>
+            </app-empty-state>
+          }
+        } @else {
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Payment</th>
+                  <th scope="col" class="num">Amount</th>
+                  <th scope="col"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (expense of paged.items; track expense.id) {
+                  <tr>
+                    <td class="nowrap">{{ expense.spentOn | calendarDate }}</td>
+                    <td>
+                      <span class="description">{{ expense.description }}</span>
+                      @if (expense.notes; as notes) {
+                        <span class="notes text-muted truncate" [title]="notes">{{ notes }}</span>
+                      }
+                    </td>
+                    <td>
+                      <app-category-chip
+                        [name]="expense.categoryName"
+                        [colorHex]="expense.categoryColorHex"
+                        [archived]="archivedCategoryIds().has(expense.categoryId)"
+                      />
+                    </td>
+                    <td class="nowrap text-secondary">
+                      {{ expense.paymentMethod | paymentMethodLabel }}
+                    </td>
+                    <td class="num amount">{{ expense.amount | money: expense.currency }}</td>
+                    <td class="actions">
+                      <div class="row-actions">
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm"
+                          [disabled]="!categoriesLoaded()"
+                          [attr.aria-label]="'Edit ' + expense.description"
+                          (click)="openEdit(expense)"
+                        >
+                          <app-icon name="pencil" [size]="15" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm btn-icon danger"
+                          [attr.aria-label]="'Delete ' + expense.description"
+                          (click)="pendingDelete.set(expense)"
+                        >
+                          <app-icon name="trash" [size]="15" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <app-pagination
+              [page]="paged.page"
+              [pageSize]="paged.pageSize"
+              [totalCount]="paged.totalCount"
+              [totalPages]="paged.totalPages"
+              (pageChange)="goToPage($event)"
+            />
+          </div>
+        }
+      </section>
+    }
+  }
+</div>
+<app-expense-form
+  [open]="formOpen()"
+  [expense]="editing()"
+  [categories]="categories()"
+  (closed)="formOpen.set(false)"
+  (saved)="onSaved($event)"
+  (gone)="onGone()"
+/>
+<app-confirm-dialog
+  [open]="pendingDelete() !== null"
+  [title]="deleteTitle()"
+  message="It will also drop out of every report and budget it counted towards. This can't be undone."
+  confirmLabel="Delete expense"
+  [busy]="deleting()"
+  (confirmed)="confirmDelete()"
+  (cancelled)="pendingDelete.set(null)"
+/>

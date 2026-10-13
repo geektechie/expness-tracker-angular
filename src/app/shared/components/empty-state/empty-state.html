@@ -1,0 +1,10 @@
+<div class="empty" [class.compact]="compact()">
+  @if (icon(); as name) {
+    <span class="glyph"><app-icon [name]="name" [size]="compact() ? 20 : 24" /></span>
+  }
+  <p class="title">{{ title() }}</p>
+  @if (message()) {
+    <p class="message">{{ message() }}</p>
+  }
+  <div class="actions"><ng-content /></div>
+</div>

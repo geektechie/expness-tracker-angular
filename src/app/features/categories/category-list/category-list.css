@@ -1,0 +1,29 @@
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.action-slot {
+  width: 28px;
+  flex: none;
+}
+
+.danger:hover:not(:disabled) {
+  color: var(--error-text);
+}
+
+.count-link {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.count-link:hover {
+  text-decoration: underline;
+}
+
+.footnote {
+  max-width: 640px;
+  font-size: 12.5px;
+}

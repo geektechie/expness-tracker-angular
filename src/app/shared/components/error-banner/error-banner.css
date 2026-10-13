@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+:host(:focus) {
+  outline: none;
+}
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--status-critical);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.glyph {
+  margin-top: 1px;
+  color: var(--status-critical);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.detail,
+.trace {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+code {
+  font-size: 12px;
+}

@@ -1,0 +1,102 @@
+.header-link {
+  flex: none;
+  margin: -6px -8px 0 0;
+}
+
+.meters {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.more {
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.more a {
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.more a:hover {
+  text-decoration: underline;
+}
+
+.footnote {
+  margin-top: 12px;
+  font-size: 12.5px;
+}
+
+.recent {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recent-row {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr) 112px 128px;
+  grid-template-areas: 'category description date amount';
+  align-items: center;
+  column-gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.recent-row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.recent-row:last-child {
+  padding-bottom: 0;
+}
+
+.recent-category {
+  grid-area: category;
+  justify-self: start;
+}
+
+.recent-description {
+  grid-area: description;
+  font-weight: 500;
+}
+
+.recent-date {
+  grid-area: date;
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.recent-amount {
+  grid-area: amount;
+  font-weight: 600;
+}
+
+@media (max-width: 1120px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+
+  .recent-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'description amount'
+      'category date';
+    row-gap: 2px;
+    column-gap: 12px;
+  }
+
+  .recent-date {
+    font-size: 12.5px;
+    text-align: right;
+  }
+}

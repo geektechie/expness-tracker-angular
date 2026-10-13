@@ -1,0 +1,45 @@
+<ol class="bars" [id]="listId" [attr.aria-label]="label()">
+  @for (row of rows(); track row.key) {
+
+    <li class="row" [class.other]="row.isOther">
+      <div class="label" [class.has-swatch]="!!row.swatchColor">
+        @if (row.swatchColor) {
+          <span class="swatch" [style.background-color]="row.swatchColor" aria-hidden="true"></span>
+        }
+        <span class="name">{{ row.label }}</span>
+        @if (row.detail) {
+          <span class="detail">{{ row.detail }}</span>
+        }
+      </div>
+
+      <div class="track" aria-hidden="true">
+        @if (row.length > 0) {
+          <span class="bar" [style.--length]="row.length"></span>
+        }
+      </div>
+
+      <div class="value">
+        <span class="sr-only">, </span>
+        <span class="amount">{{ row.formattedValue }}</span>
+        @if (row.formattedPercent) {
+          <span class="sr-only">, </span>
+          <span class="percent">{{ row.formattedPercent }}</span>
+        }
+      </div>
+    </li>
+  }
+</ol>
+
+@if (foldable()) {
+  <div class="footer">
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="listId"
+      (click)="toggleExpanded()"
+    >
+      {{ toggleLabel() }}
+    </button>
+  </div>
+}

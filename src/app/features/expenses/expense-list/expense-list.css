@@ -1,0 +1,94 @@
+.filter-search {
+  flex: 1 1 240px;
+}
+
+.filter-category {
+  flex: 0 1 190px;
+}
+
+.filter-payment {
+  flex: 0 1 160px;
+}
+
+.filter-date {
+  flex: 0 1 150px;
+}
+
+.filter-sort {
+  flex: 0 1 150px;
+}
+
+.search-box {
+  position: relative;
+  display: block;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 34px;
+}
+
+.range-error {
+  flex-basis: 100%;
+  margin-top: -4px;
+}
+
+.list-section:focus {
+  outline: none;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.description,
+.notes {
+  display: block;
+  max-width: 420px;
+}
+
+.description {
+  overflow-wrap: anywhere;
+}
+
+.notes {
+  margin-top: 2px;
+  font-size: 12.5px;
+}
+
+.amount {
+  font-weight: 600;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.danger:hover:not(:disabled) {
+  color: var(--error-text);
+}
+
+.table-footer {
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 720px) {
+  .filters > .field {
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  .filters > .filter-search {
+    flex-basis: 100%;
+  }
+}

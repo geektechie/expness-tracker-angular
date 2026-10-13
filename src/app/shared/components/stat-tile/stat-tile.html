@@ -1,0 +1,8 @@
+<div class="tile" [class.hero]="hero()">
+  <p class="label">{{ label() }}</p>
+  <p class="value" [attr.title]="value()">{{ value() }}</p>
+  @if (hint()) {
+    <p class="hint">{{ hint() }}</p>
+  }
+  <ng-content />
+</div>

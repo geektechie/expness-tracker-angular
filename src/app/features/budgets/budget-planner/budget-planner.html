@@ -1,0 +1,224 @@
+<div class="page">
+  <app-page-header title="Budgets" subtitle="Monthly spending limits, per category.">
+    <app-month-picker [(month)]="month" />
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="!canSetBudget()"
+      (click)="openCreate(null)"
+    >
+      <app-icon name="plus" [size]="16" />
+      Set budget
+    </button>
+  </app-page-header>
+  <app-error-banner [error]="error()" (retry)="reload()" />
+
+  @if (!data() && !error()) {
+    <p class="loading-note" role="status">Loading budgets…</p>
+  }
+
+  @if (!initialLoad() && !error()) {
+    @if (data(); as d) {
+
+      <div
+        #content
+        class="content"
+        tabindex="-1"
+        [class.is-refreshing]="refreshing()"
+        [attr.aria-busy]="refreshing()"
+        [attr.inert]="current() ? null : ''"
+      >
+        @if (d.categories.length === 0 && d.status.categories.length === 0) {
+          <section class="card card-flush" aria-label="Budgets">
+            <app-empty-state
+              icon="tag"
+              title="No categories to budget"
+              message="Budgets are set per category. Create a category first, then come back to give it a monthly limit."
+            >
+              <a class="btn btn-primary" routerLink="/categories">Go to categories</a>
+            </app-empty-state>
+          </section>
+        } @else {
+          <div class="grid grid-cols-3">
+            <app-stat-tile
+              label="Budgeted"
+              [value]="d.status.totalLimit | money: d.status.currency"
+              [hint]="budgetedHint()"
+            />
+            <app-stat-tile
+              label="Spent"
+              [value]="d.status.totalSpent | money: d.status.currency"
+              [hint]="spentHint()"
+            />
+            <app-stat-tile
+              label="Remaining"
+              [value]="d.status.totalRemaining | money: d.status.currency"
+              [hint]="remainingHint()"
+            />
+          </div>
+          @if (showCopy()) {
+            <section class="card copy-card" aria-labelledby="budget-copy-title">
+              <span class="copy-glyph" aria-hidden="true">
+                <app-icon name="calendar" [size]="20" />
+              </span>
+              <div class="copy-text">
+                <h2 id="budget-copy-title" class="card-title">{{ copyTitle() }}</h2>
+                <p class="card-subtitle">{{ copyMessage() }}</p>
+              </div>
+
+              <button
+                #copyButton
+                type="button"
+                class="btn btn-secondary"
+                [disabled]="copying() || refreshing() || !current()"
+                (click)="copyFromPrevious()"
+              >
+                {{ copying() ? 'Copying…' : copyLabel() }}
+              </button>
+            </section>
+          }
+
+          <section class="card" aria-labelledby="budgeted-title">
+            <div class="card-header">
+              <div>
+                <h2 id="budgeted-title" class="card-title">Budgeted categories</h2>
+                <p class="card-subtitle">Most at risk first.</p>
+              </div>
+            </div>
+            @if (budgetRows().length === 0) {
+              <app-empty-state
+                icon="target"
+                [title]="'No budgets for ' + monthLabel()"
+                message="Give a category a monthly limit to see its spending measured against it here."
+                [compact]="true"
+              >
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  [disabled]="!canSetBudget()"
+                  (click)="openCreate(null)"
+                >
+                  Set budget
+                </button>
+              </app-empty-state>
+            } @else {
+              <ul class="meter-list">
+                @for (row of budgetRows(); track row.budget.id) {
+                  <li class="meter-row">
+                    <app-budget-meter class="meter-cell" [item]="row.item" [currency]="d.status.currency" />
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-sm"
+                        [attr.aria-label]="'Edit ' + row.budget.categoryName + ' budget'"
+                        (click)="openEdit(row.budget)"
+                      >
+                        <app-icon name="pencil" [size]="15" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-sm btn-icon danger"
+                        [attr.aria-label]="'Remove ' + row.budget.categoryName + ' budget'"
+                        (click)="pendingRemove.set(row.budget)"
+                      >
+                        <app-icon name="trash" [size]="15" />
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+          @if (unbudgetedSpending().length > 0) {
+            <section class="card" aria-labelledby="unbudgeted-title">
+              <div class="card-header">
+                <div>
+                  <h2 id="unbudgeted-title" class="card-title">Spending without a budget</h2>
+                  <p class="card-subtitle">
+                    Categories with spending in {{ monthLabel() }} but no limit.
+                  </p>
+                </div>
+              </div>
+              <ul class="meter-list">
+                @for (item of unbudgetedSpending(); track item.categoryId) {
+                  <li class="meter-row">
+                    <app-budget-meter class="meter-cell" [item]="item" [currency]="d.status.currency" />
+                    <div class="row-actions">
+
+                      @if (isActive(item.categoryId)) {
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-sm"
+                          [attr.aria-label]="'Set budget for ' + item.categoryName"
+                          [disabled]="!canSetBudget()"
+                          (click)="openCreate(item.categoryId)"
+                        >
+                          Set budget
+                        </button>
+                      } @else {
+                        <span class="badge">Archived</span>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+
+          @if (notBudgeted().length > 0) {
+            <section class="card" aria-labelledby="not-budgeted-title">
+              <div class="card-header">
+                <div>
+                  <h2 id="not-budgeted-title" class="card-title">Not budgeted yet</h2>
+                  <p class="card-subtitle">No limit and no spending in {{ monthLabel() }}.</p>
+                </div>
+              </div>
+              <ul class="chip-list">
+                @for (category of notBudgeted(); track category.id) {
+                  <li class="chip-row">
+                    <app-category-chip [name]="category.name" [colorHex]="category.colorHex" />
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm"
+                      [attr.aria-label]="'Set budget for ' + category.name"
+                      [disabled]="!canSetBudget()"
+                      (click)="openCreate(category.id)"
+                    >
+                      Set budget
+                    </button>
+                  </li>
+                }
+              </ul>
+            </section>
+          } @else if (d.categories.length === 0) {
+            <p class="footnote text-muted">
+              Every category here is archived, so none can take a new budget.
+              <a routerLink="/categories">Create or restore a category</a> to plan for it.
+            </p>
+          }
+        }
+      </div>
+    }
+  }
+</div>
+<app-budget-form
+  [open]="formOpen()"
+  [month]="formMonth()"
+  [categories]="formCategories()"
+  [existing]="editing()"
+  [presetCategoryId]="presetCategoryId()"
+  [budgets]="formBudgets()"
+  [currency]="currency()"
+  (closed)="formOpen.set(false)"
+  (saved)="onSaved($event)"
+/>
+<app-confirm-dialog
+  [open]="pendingRemove() !== null"
+  [title]="removeTitle()"
+  [message]="removeMessage()"
+  confirmLabel="Remove budget"
+  [busy]="removing()"
+  (confirmed)="confirmRemove()"
+  (cancelled)="pendingRemove.set(null)"
+/>

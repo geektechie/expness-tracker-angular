@@ -1,0 +1,201 @@
+<div class="page">
+  <app-page-header title="Dashboard" [subtitle]="monthName()">
+    <a class="btn btn-primary" routerLink="/expenses" [queryParams]="newExpenseParams">
+      <app-icon name="plus" [size]="16" />
+      Add expense
+    </a>
+  </app-page-header>
+  <app-error-banner [error]="error()" (retry)="load()" />
+  @if (initialLoad() && !error()) {
+    <p class="loading-note" role="status">Loading this month…</p>
+  }
+
+  @if (data(); as d) {
+    <div class="stack" [class.is-refreshing]="refreshing()" [attr.aria-busy]="refreshing()">
+      <section class="kpi-row" aria-label="This month in numbers">
+        <app-stat-tile
+          class="hero-tile"
+          label="Spent this month"
+          [value]="d.summary.total | money: d.summary.currency"
+          [hint]="rangeLabel()"
+          [hero]="true"
+        />
+        <app-stat-tile
+          label="Daily average"
+          [value]="dailyAverage() | money: d.summary.currency"
+          [hint]="dailyAverageHint()"
+        />
+        <app-stat-tile label="Expenses" [value]="expenseCount()" [hint]="expenseCountHint()" />
+        <app-stat-tile
+          label="Largest expense"
+          [value]="d.summary.largestExpense | money: d.summary.currency"
+          [hint]="largestExpenseHint()"
+        />
+      </section>
+      <div class="grid grid-cols-2 split">
+        <section class="card" aria-labelledby="daily-title">
+          <div class="card-header">
+            <div>
+              <h2 id="daily-title" class="card-title">Daily spending</h2>
+              <p class="card-subtitle">{{ rangeLabel() }}</p>
+            </div>
+          </div>
+          <app-column-chart
+            [points]="d.trend.points"
+            [granularity]="d.trend.granularity"
+            [currency]="d.trend.currency"
+            [height]="240"
+          />
+        </section>
+        <section class="card" aria-labelledby="category-title">
+          <div class="card-header">
+            <div>
+              <h2 id="category-title" class="card-title">By category</h2>
+              <p class="card-subtitle">Where this month's money went</p>
+            </div>
+            <a
+              class="btn btn-ghost btn-sm header-link"
+              routerLink="/reports"
+              [queryParams]="{ from: d.summary.from, to: d.summary.to }"
+            >
+              Full report
+              <app-icon name="chevron-right" [size]="15" />
+            </a>
+          </div>
+          @if (categoryItems().length > 0) {
+            <app-bar-list
+              [items]="categoryItems()"
+              [currency]="d.summary.currency"
+              label="Spending by category this month"
+              [maxRows]="categoryRows"
+            />
+          } @else {
+            <app-empty-state
+              [compact]="true"
+              icon="tag"
+              title="Nothing spent yet this month"
+              message="Each category's share shows up here once an expense is recorded."
+            />
+          }
+        </section>
+      </div>
+      <div class="grid grid-cols-2 split">
+        <section class="card" aria-labelledby="budgets-title">
+          <div class="card-header">
+            <div>
+              <h2 id="budgets-title" class="card-title">Budgets this month</h2>
+              @if (budgeted().length > 0) {
+                <p class="card-subtitle">{{ budgetSummary() }}</p>
+              }
+            </div>
+            @if (budgeted().length > 0) {
+              <a class="btn btn-ghost btn-sm header-link" routerLink="/budgets">
+                Manage budgets
+                <app-icon name="chevron-right" [size]="15" />
+              </a>
+            }
+          </div>
+          @if (budgeted().length > 0) {
+            <ul class="meters" aria-label="Budgets, most at risk first">
+              @for (item of topBudgets(); track item.categoryId) {
+                <li>
+                  <app-budget-meter [item]="item" [currency]="d.budgets.currency" />
+                </li>
+              }
+            </ul>
+            @if (moreBudgets() > 0) {
+              <p class="more">
+                <a routerLink="/budgets">and {{ moreBudgets() }} more<span class="sr-only"> budgets</span></a>
+              </p>
+            }
+
+            @if (unbudgetedSpent() > 0) {
+              <p class="footnote text-muted">
+                Plus {{ unbudgetedSpent() | money: d.budgets.currency }} in categories without a budget.
+              </p>
+            }
+          } @else {
+            <app-empty-state
+              [compact]="true"
+              icon="target"
+              [title]="'No budgets set for ' + monthName()"
+              message="Give a category a monthly limit to see here how its spending is tracking."
+            >
+              <a class="btn btn-secondary btn-sm" routerLink="/budgets">Set budgets</a>
+            </app-empty-state>
+          }
+        </section>
+        <section class="card" aria-labelledby="payment-title">
+          <div class="card-header">
+            <div>
+              <h2 id="payment-title" class="card-title">By payment method</h2>
+              <p class="card-subtitle">How this month's money was paid</p>
+            </div>
+          </div>
+          @if (paymentItems().length > 0) {
+            <app-bar-list
+              [items]="paymentItems()"
+              [currency]="d.summary.currency"
+              label="Spending by payment method this month"
+            />
+          } @else {
+            <app-empty-state
+              [compact]="true"
+              icon="wallet"
+              title="Nothing spent yet this month"
+              message="The split across cards, cash and transfers shows up here once an expense is recorded."
+            />
+          }
+        </section>
+      </div>
+      <section class="card" aria-labelledby="recent-title">
+        <div class="card-header">
+          <div>
+            <h2 id="recent-title" class="card-title">Recent expenses</h2>
+            <p class="card-subtitle">The latest you recorded, whatever day they were spent</p>
+          </div>
+          @if ((recent()?.length ?? 0) > 0) {
+            <a class="btn btn-ghost btn-sm header-link" routerLink="/expenses">
+              View all<span class="sr-only"> expenses</span>
+              <app-icon name="chevron-right" [size]="15" />
+            </a>
+          }
+        </div>
+        @if (recentError()) {
+          <app-error-banner [error]="recentError()" (retry)="loadRecent()" />
+        } @else if (recent(); as items) {
+          @if (items.length > 0) {
+            <ul class="recent">
+              @for (expense of items; track expense.id) {
+                <li class="recent-row">
+                  <app-category-chip
+                    class="recent-category"
+                    [name]="expense.categoryName"
+                    [colorHex]="expense.categoryColorHex"
+                  />
+                  <span class="recent-description truncate" [title]="expense.description">{{ expense.description }}</span>
+                  <span class="recent-date">{{ expense.spentOn | calendarDate }}</span>
+                  <span class="recent-amount num">{{ expense.amount | money: expense.currency }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <app-empty-state
+              [compact]="true"
+              icon="receipt"
+              title="No expenses yet"
+              message="Record your first expense and it will show up here."
+            >
+              <a class="btn btn-secondary btn-sm" routerLink="/expenses" [queryParams]="newExpenseParams">
+                <app-icon name="plus" [size]="15" />
+                Add expense
+              </a>
+            </app-empty-state>
+          }
+        } @else {
+          <p class="loading-note" role="status">Loading recent expenses…</p>
+        }
+      </section>
+    </div>
+  }
+</div>

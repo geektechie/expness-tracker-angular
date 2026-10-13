@@ -1,0 +1,35 @@
+@if (totalCount() > 0) {
+  <nav class="pagination" aria-label="Pagination">
+    <p class="summary">
+      Showing <strong>{{ firstItem() }}–{{ lastItem() }}</strong> of
+      <strong>{{ totalCount() }}</strong>
+    </p>
+
+    @if (totalPages() > 1) {
+      <div class="controls">
+
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          [attr.aria-disabled]="page() <= 1 ? 'true' : null"
+          (click)="go(page() - 1)"
+        >
+          <app-icon name="chevron-left" [size]="15" />
+          Previous
+        </button>
+        <span class="position" aria-live="polite" aria-atomic="true">
+          Page {{ page() }} of {{ totalPages() }}
+        </span>
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          [attr.aria-disabled]="page() >= totalPages() ? 'true' : null"
+          (click)="go(page() + 1)"
+        >
+          Next
+          <app-icon name="chevron-right" [size]="15" />
+        </button>
+      </div>
+    }
+  </nav>
+}

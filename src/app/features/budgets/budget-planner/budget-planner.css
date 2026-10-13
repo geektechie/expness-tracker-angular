@@ -1,0 +1,98 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.copy-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 16px;
+}
+
+.copy-glyph {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+
+.copy-text {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.meter-list,
+.chip-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meter-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+}
+
+.meter-row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.meter-row:last-child {
+  padding-bottom: 0;
+}
+
+.meter-cell {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.row-actions {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.danger:hover:not(:disabled) {
+  color: var(--error-text);
+}
+
+.chip-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 4px 24px;
+}
+
+.chip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.footnote {
+  max-width: 640px;
+  font-size: 12.5px;
+}
+
+@media (max-width: 720px) {
+  .meter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+}

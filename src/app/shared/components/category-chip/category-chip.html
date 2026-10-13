@@ -1,0 +1,7 @@
+<span class="chip" [class.archived]="archived()">
+  <span class="swatch" [style.background-color]="colorHex()" aria-hidden="true"></span>
+  <span class="name">{{ name() }}</span>
+  @if (archived()) {
+    <span class="tag">Archived</span>
+  }
+</span>

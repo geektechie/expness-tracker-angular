@@ -1,0 +1,144 @@
+<app-modal [open]="open()" [title]="title()" [dismissible]="!saving()" (closed)="requestClose()">
+  <form id="expense-form" class="stack" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (formError()) {
+      <p class="form-alert" role="alert">{{ formError() }}</p>
+    }
+
+    <div class="grid grid-cols-2">
+      <label class="field">
+        <span class="field-label">Amount</span>
+        <input
+          class="input amount-input"
+          type="number"
+          inputmode="decimal"
+          step="0.01"
+          min="0.01"
+          formControlName="amount"
+          autocomplete="off"
+          placeholder="0.00"
+          [attr.max]="limits.maxAmount"
+          [class.is-invalid]="errorFor('amount', 'Amount')"
+          [attr.aria-invalid]="!!errorFor('amount', 'Amount')"
+          aria-describedby="expense-amount-error"
+        />
+        @if (errorFor('amount', 'Amount'); as message) {
+          <span id="expense-amount-error" class="field-error">{{ message }}</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field-label">Date</span>
+        <input
+          class="input"
+          type="date"
+          formControlName="spentOn"
+          [attr.max]="latestDate()"
+          [class.is-invalid]="errorFor('spentOn', 'Date')"
+          [attr.aria-invalid]="!!errorFor('spentOn', 'Date')"
+          aria-describedby="expense-date-error"
+        />
+        @if (errorFor('spentOn', 'Date'); as message) {
+          <span id="expense-date-error" class="field-error">{{ message }}</span>
+        }
+      </label>
+    </div>
+
+    <div class="grid grid-cols-2">
+      @if (hasCategoryOptions()) {
+        <label class="field">
+          <span class="field-label">Category</span>
+          <select
+            class="select"
+            formControlName="categoryId"
+            [class.is-invalid]="errorFor('categoryId', 'Category')"
+            [attr.aria-invalid]="!!errorFor('categoryId', 'Category')"
+            aria-describedby="expense-category-error"
+          >
+            <option value="" disabled>Choose a category</option>
+            @for (option of categoryOptions(); track option.id) {
+              <option [value]="option.id">{{ option.label }}</option>
+            }
+          </select>
+          @if (errorFor('categoryId', 'Category'); as message) {
+            <span id="expense-category-error" class="field-error">{{ message }}</span>
+          }
+        </label>
+      } @else {
+
+        <div class="field">
+          <span class="field-label">Category</span>
+          <p class="no-categories">
+            There are no active categories to file this under.
+            <a routerLink="/categories">Create or restore one</a> first.
+          </p>
+        </div>
+      }
+
+      <label class="field">
+        <span class="field-label">Payment method</span>
+        <select class="select" formControlName="paymentMethod">
+          @for (method of paymentMethods; track method.value) {
+            <option [value]="method.value">{{ method.label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <label class="field">
+      <span class="field-label">Description</span>
+      <input
+        class="input"
+        type="text"
+        formControlName="description"
+        autocomplete="off"
+        placeholder="e.g. Weekly shop"
+        [attr.maxlength]="limits.descriptionMaxLength"
+        [class.is-invalid]="errorFor('description', 'Description')"
+        [attr.aria-invalid]="!!errorFor('description', 'Description')"
+        aria-describedby="expense-description-error"
+      />
+      @if (errorFor('description', 'Description'); as message) {
+        <span id="expense-description-error" class="field-error">{{ message }}</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field-label">Notes</span>
+      <textarea
+        class="textarea"
+        formControlName="notes"
+        rows="3"
+        placeholder="Optional — anything worth remembering later"
+        [attr.maxlength]="limits.notesMaxLength"
+        [class.is-invalid]="errorFor('notes', 'Notes')"
+        [attr.aria-invalid]="!!errorFor('notes', 'Notes')"
+        aria-describedby="expense-notes-error"
+      ></textarea>
+      @if (errorFor('notes', 'Notes'); as message) {
+        <span id="expense-notes-error" class="field-error">{{ message }}</span>
+      }
+    </label>
+  </form>
+
+  <div modal-footer>
+    <button type="button" class="btn btn-secondary" [disabled]="saving()" (click)="requestClose()">
+      Cancel
+    </button>
+    <button
+      type="submit"
+      form="expense-form"
+      class="btn btn-primary"
+      [disabled]="saving() || !hasCategoryOptions()"
+    >
+      {{ saving() ? 'Saving…' : isEdit() ? 'Save changes' : 'Add expense' }}
+    </button>
+  </div>
+</app-modal>
+<app-confirm-dialog
+  [open]="open() && confirmDiscard()"
+  title="Discard your changes?"
+  message="What you entered for this expense will be lost."
+  confirmLabel="Discard changes"
+  (confirmed)="discard()"
+  (cancelled)="confirmDiscard.set(false)"
+/>

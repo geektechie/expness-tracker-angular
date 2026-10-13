@@ -1,0 +1,13 @@
+.amount-input {
+  font-variant-numeric: tabular-nums;
+}
+
+.no-categories {
+  min-height: 36px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}

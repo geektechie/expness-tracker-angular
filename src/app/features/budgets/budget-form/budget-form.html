@@ -1,0 +1,73 @@
+<app-modal [open]="open()" [title]="title()" size="sm" [dismissible]="!saving()" (closed)="closed.emit()">
+  <form id="budget-form" class="stack" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (formError()) {
+      <p class="form-alert" role="alert">{{ formError() }}</p>
+    }
+
+    <dl class="month-field">
+      <dt class="field-label">Month</dt>
+      <dd>{{ monthLabel() }}</dd>
+    </dl>
+
+    <div class="field">
+      <label class="field-label" for="budget-category">Category</label>
+      <select
+        id="budget-category"
+        class="select"
+        formControlName="categoryId"
+        [class.is-invalid]="errorFor('categoryId', 'Category')"
+        [attr.aria-invalid]="!!errorFor('categoryId', 'Category')"
+        aria-describedby="budget-category-hint budget-category-error"
+      >
+        <option value="" disabled>Choose a category</option>
+        @for (option of categoryOptions(); track option.id) {
+          <option [value]="option.id">{{ option.name }}</option>
+        }
+      </select>
+      @if (isEdit()) {
+        <span id="budget-category-hint" class="field-hint">
+          A budget belongs to one category. To budget a different one, set a new budget instead.
+        </span>
+      } @else if (replacedBudget(); as replaced) {
+        <span id="budget-category-hint" class="field-hint">
+          {{ replaced.categoryName }} already has a limit of
+          {{ replaced.limit | money: replaced.currency }} for {{ monthLabel() }}. Saving replaces it.
+        </span>
+      }
+      @if (errorFor('categoryId', 'Category'); as message) {
+        <span id="budget-category-error" class="field-error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="budget-limit">Limit</label>
+      <input
+        id="budget-limit"
+        class="input"
+        type="number"
+        inputmode="decimal"
+        step="0.01"
+        formControlName="limit"
+        placeholder="0.00"
+        [attr.min]="limitMin"
+        [attr.max]="limitMax"
+        [class.is-invalid]="errorFor('limit', 'Limit')"
+        [attr.aria-invalid]="!!errorFor('limit', 'Limit')"
+        aria-describedby="budget-limit-hint budget-limit-error"
+      />
+      <span id="budget-limit-hint" class="field-hint">{{ limitHint() }}</span>
+      @if (errorFor('limit', 'Limit'); as message) {
+        <span id="budget-limit-error" class="field-error">{{ message }}</span>
+      }
+    </div>
+  </form>
+
+  <div modal-footer>
+    <button type="button" class="btn btn-secondary" [disabled]="saving()" (click)="closed.emit()">
+      Cancel
+    </button>
+    <button type="submit" form="budget-form" class="btn btn-primary" [disabled]="saving()">
+      {{ submitLabel() }}
+    </button>
+  </div>
+</app-modal>

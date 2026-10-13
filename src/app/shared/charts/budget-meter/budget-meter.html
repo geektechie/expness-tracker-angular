@@ -1,0 +1,51 @@
+<div class="meter" [attr.data-state]="state()">
+  <div class="top">
+    <app-category-chip [name]="item().categoryName" [colorHex]="item().colorHex" />
+    <span class="status">
+      <app-icon class="status-icon" [name]="style().icon" [size]="16" />
+      {{ style().label }}
+    </span>
+  </div>
+
+  <div class="figures">
+    <span class="spent">{{ money(item().spent) }}</span>
+    @if (item().limit !== null) {
+      <span class="limit">of {{ money(item().limit) }}</span>
+      <span class="spacer"></span>
+      <span class="percent">{{ percentLabel() }} used</span>
+    } @else {
+      <span class="limit">spent, with no limit set</span>
+    }
+  </div>
+
+  @if (item().limit !== null) {
+    <div
+      class="track"
+      role="meter"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-valuenow]="fillPercent()"
+      [attr.aria-valuetext]="valueText()"
+      [attr.aria-label]="item().categoryName + ' budget'"
+    >
+      <span class="fill" [style.width.%]="fillPercent()"></span>
+      @if (projectionPercent() !== null) {
+        <span class="projection" [style.left.%]="projectionPercent()" aria-hidden="true"></span>
+      }
+    </div>
+
+    <p class="note">
+      @if (item().isOverBudget) {
+        <strong>{{ money(overBy()) }} over</strong>
+      } @else {
+        {{ money(item().remaining) }} left
+      }
+      @if (item().projectedSpend !== null) {
+        <span class="projection-note">
+          <span class="tick-key" aria-hidden="true"></span>
+          Projected {{ money(item().projectedSpend) }} by month end
+        </span>
+      }
+    </p>
+  }
+</div>

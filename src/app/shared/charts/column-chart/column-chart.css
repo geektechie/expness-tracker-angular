@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+  border-radius: 6px;
+  outline-offset: 4px;
+  touch-action: pan-y;
+}
+
+svg {
+  display: block;
+  overflow: visible;
+}
+
+.grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.grid.baseline {
+  stroke: var(--axis);
+}
+
+.y-label,
+.x-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.band {
+  fill: var(--surface-2);
+}
+
+.column {
+  fill: var(--series-1);
+  transition: fill 100ms ease;
+}
+
+.column.active {
+  fill: var(--series-1-hover);
+}
+
+.peak-label {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 5;
+  min-width: 128px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-1);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tip-value {
+  font-size: 15px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.tip-period {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+}
+
+.tip-count {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.empty-note {
+  position: absolute;
+  inset: 40% 0 auto;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.table-view {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}

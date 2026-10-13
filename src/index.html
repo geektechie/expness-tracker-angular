@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expense Tracker</title>
+  <meta name="description" content="Track spending by category, set monthly budgets, and see where the money goes.">
+  <meta name="color-scheme" content="light dark">
+
+  <script>
+    try {
+      var theme = localStorage.getItem('expense-tracker.theme');
+      if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {}
+  </script>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

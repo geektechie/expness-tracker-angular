@@ -1,0 +1,34 @@
+<app-modal
+  [open]="open()"
+  [title]="title()"
+  size="sm"
+  dialogRole="alertdialog"
+  [describedBy]="message() ? messageId : null"
+  [dismissible]="!busy()"
+  (closed)="cancelled.emit()"
+>
+  <p class="message" [id]="messageId">{{ message() }}</p>
+
+  <div modal-footer>
+
+    <button
+      type="button"
+      class="btn btn-secondary"
+      autofocus
+      [disabled]="busy()"
+      (click)="cancelled.emit()"
+    >
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn"
+      [class.btn-danger]="tone() === 'danger'"
+      [class.btn-primary]="tone() === 'primary'"
+      [disabled]="busy()"
+      (click)="confirmed.emit()"
+    >
+      {{ busy() ? 'Working…' : confirmLabel() }}
+    </button>
+  </div>
+</app-modal>

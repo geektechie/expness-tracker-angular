@@ -1,0 +1,35 @@
+<div class="region">
+  <div class="stack" role="status">
+    @for (toast of notices(); track toast.id) {
+      <ng-container [ngTemplateOutlet]="toastTemplate" [ngTemplateOutletContext]="{ $implicit: toast }" />
+    }
+  </div>
+  <div class="stack" role="alert">
+    @for (toast of errors(); track toast.id) {
+      <ng-container [ngTemplateOutlet]="toastTemplate" [ngTemplateOutletContext]="{ $implicit: toast }" />
+    }
+  </div>
+</div>
+
+<ng-template #toastTemplate let-toast>
+  <div
+    class="toast"
+    [attr.data-kind]="toast.kind"
+    [attr.data-toast-id]="toast.id"
+    (mouseenter)="notifications.pause(toast.id)"
+    (mouseleave)="notifications.resume(toast.id)"
+    (focusin)="onFocusIn(toast.id)"
+    (focusout)="onFocusOut(toast.id, $event)"
+  >
+    <app-icon class="glyph" [name]="iconFor(toast.kind)" />
+    <p class="message">{{ toast.message }}</p>
+    <button
+      type="button"
+      class="btn btn-ghost btn-icon btn-sm"
+      aria-label="Dismiss"
+      (click)="notifications.dismiss(toast.id)"
+    >
+      <app-icon name="x" [size]="15" />
+    </button>
+  </div>
+</ng-template>

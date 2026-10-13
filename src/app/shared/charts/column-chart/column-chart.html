@@ -1,0 +1,106 @@
+<div class="chart" [class.is-refreshing]="loading()">
+  @if (!showTable()) {
+    <div
+      #canvas
+      class="canvas"
+      [style.height.px]="height()"
+      tabindex="0"
+      role="group"
+      [attr.aria-label]="ariaLabel()"
+      (pointerdown)="onPointerMove($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerleave)="onPointerLeave($event)"
+      (focus)="onFocus()"
+      (blur)="active.set(null)"
+      (keydown)="onKeydown($event)"
+    >
+      @if (layout(); as l) {
+        <svg [attr.width]="l.width" [attr.height]="l.height" aria-hidden="true">
+          @for (tick of l.ticks; track tick.y) {
+            <line
+              class="grid"
+              [class.baseline]="tick.isBaseline"
+              [attr.x1]="l.plotLeft"
+              [attr.x2]="l.plotRight"
+              [attr.y1]="tick.y"
+              [attr.y2]="tick.y"
+            />
+            <text class="y-label" [attr.x]="l.plotLeft - 8" [attr.y]="tick.y" dy="0.32em" text-anchor="end">
+              {{ tick.label }}
+            </text>
+          }
+
+          @if (activeColumn(); as column) {
+            <rect
+              class="band"
+              [attr.x]="column.bandX"
+              [attr.y]="l.plotTop"
+              [attr.width]="column.bandWidth"
+              [attr.height]="l.plotBottom - l.plotTop"
+            />
+          }
+
+          @for (column of l.columns; track column.index) {
+            @if (column.path) {
+              <path class="column" [class.active]="column.index === activeColumn()?.drawnIndex" [attr.d]="column.path" />
+            }
+          }
+
+          @if (l.peak && active() === null) {
+            <text class="peak-label" [attr.x]="l.peak.x" [attr.y]="l.peak.y" text-anchor="middle">
+              {{ l.peak.label }}
+            </text>
+          }
+
+          @for (label of l.xLabels; track label.x) {
+            <text class="x-label" [attr.x]="label.x" [attr.y]="l.height - 9" text-anchor="middle">
+              {{ label.text }}
+            </text>
+          }
+        </svg>
+
+        @if (tooltip(); as tip) {
+          <div #tooltipBox class="tooltip" [style.left.px]="tip.x" [style.top.px]="tip.y">
+            <p class="tip-value">{{ tip.value }}</p>
+            <p class="tip-period">{{ tip.period }}</p>
+            <p class="tip-count">{{ tip.count }}</p>
+          </div>
+        }
+
+        @if (isEmpty()) {
+          <p class="empty-note">No spending in this period</p>
+        }
+      }
+    </div>
+    <p class="sr-only" aria-live="polite">{{ liveText() }}</p>
+  } @else {
+    <div class="table-wrap table-view">
+      <table class="table">
+        <caption class="sr-only">{{ ariaLabel() }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{{ granularity() === 'Monthly' ? 'Month' : 'Day' }}</th>
+            <th scope="col" class="num">Spent</th>
+            <th scope="col" class="num">Expenses</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (point of points(); track point.periodStart) {
+            <tr>
+              <td>{{ periodLabel(point) }}</td>
+              <td class="num">{{ money(point.total) }}</td>
+              <td class="num">{{ point.count }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="footer">
+    <button type="button" class="btn btn-ghost btn-sm" (click)="toggleTable()">
+      <app-icon [name]="showTable() ? 'chart' : 'table'" [size]="15" />
+      {{ showTable() ? 'Show chart' : 'Show table' }}
+    </button>
+  </div>
+</div>

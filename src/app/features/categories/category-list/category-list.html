@@ -1,0 +1,166 @@
+<div class="page">
+  <app-page-header title="Categories" subtitle="What your spending is filed under.">
+    <button type="button" class="btn btn-primary" (click)="openCreate()">
+      <app-icon name="plus" [size]="16" />
+      New category
+    </button>
+  </app-page-header>
+
+  <app-error-banner [error]="error()" (retry)="load()" />
+
+  @if (initialLoad() && !error()) {
+    <p class="loading-note" role="status">Loading categories…</p>
+  }
+
+  @if (!initialLoad()) {
+    <div class="toolbar">
+      <label class="checkbox">
+        <input type="checkbox" [checked]="showArchived()" (change)="showArchived.set(!showArchived())" />
+        Show archived
+        @if (archivedCount() > 0) {
+          <span class="badge">{{ archivedCount() }}</span>
+        }
+      </label>
+    </div>
+
+    <section
+      #tableSection
+      class="card card-flush"
+      tabindex="-1"
+      [class.is-refreshing]="refreshing()"
+      aria-label="Categories"
+    >
+      @if (visible().length === 0) {
+        @if (categories().length === 0) {
+          <app-empty-state
+            icon="tag"
+            title="No categories yet"
+            message="Create a category to start filing expenses under it."
+          >
+            <button type="button" class="btn btn-primary" (click)="openCreate()">New category</button>
+          </app-empty-state>
+        } @else {
+          <app-empty-state
+            icon="archive"
+            title="Every category is archived"
+            message="Tick “Show archived” to see them, or create a new one."
+          />
+        }
+      } @else {
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Category</th>
+                <th scope="col" class="num">Expenses</th>
+                <th scope="col">Created</th>
+                <th scope="col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (category of visible(); track category.id) {
+                <tr [class.archived]="category.isArchived" [attr.data-row-id]="category.id">
+                  <td>
+                    <app-category-chip
+                      [name]="category.name"
+                      [colorHex]="category.colorHex"
+                      [archived]="category.isArchived"
+                    />
+                  </td>
+                  <td class="num">
+                    @if (category.expenseCount > 0) {
+                      <a
+                        class="count-link"
+                        routerLink="/expenses"
+                        [queryParams]="{ categoryId: category.id }"
+                        [attr.aria-label]="'View ' + expensesLabel(category.expenseCount) + ' in ' + category.name"
+                      >
+                        {{ category.expenseCount }}
+                      </a>
+                    } @else {
+                      <span class="text-muted">0</span>
+                    }
+                  </td>
+                  <td class="text-secondary">{{ category.createdAt | timestamp }}</td>
+                  <td class="actions">
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-sm"
+                        [disabled]="busyIds().has(category.id)"
+                        (click)="openEdit(category)"
+                      >
+                        <app-icon name="pencil" [size]="15" />
+                        Edit<span class="sr-only"> {{ category.name }}</span>
+                      </button>
+
+                      @if (category.isArchived) {
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm archive-toggle"
+                          [disabled]="busyIds().has(category.id)"
+                          (click)="setArchived(category, false)"
+                        >
+                          <app-icon name="restore" [size]="15" />
+                          Restore<span class="sr-only"> {{ category.name }}</span>
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm archive-toggle"
+                          [disabled]="busyIds().has(category.id)"
+                          (click)="setArchived(category, true)"
+                        >
+                          <app-icon name="archive" [size]="15" />
+                          Archive<span class="sr-only"> {{ category.name }}</span>
+                        </button>
+                      }
+
+                      @if (category.expenseCount === 0) {
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm btn-icon danger"
+                          [attr.aria-label]="'Delete ' + category.name"
+                          [disabled]="busyIds().has(category.id)"
+                          (click)="pendingDelete.set(category)"
+                        >
+                          <app-icon name="trash" [size]="15" />
+                        </button>
+                      } @else {
+                        <span class="action-slot" aria-hidden="true"></span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <p class="footnote text-muted">
+      A category that has expenses can't be deleted — archive it instead. Archiving keeps every
+      past expense and report intact, and only stops new expenses being filed under it.
+    </p>
+  }
+</div>
+
+<app-category-form
+  [open]="formOpen()"
+  [category]="editing()"
+  [existing]="categories()"
+  (closed)="formOpen.set(false)"
+  (saved)="onSaved($event)"
+  (gone)="onGone()"
+/>
+
+<app-confirm-dialog
+  [open]="pendingDelete() !== null"
+  [title]="'Delete “' + (pendingDelete()?.name ?? '') + '”?'"
+  message="This category has no expenses. Any budgets set for it will be deleted too. This can't be undone."
+  confirmLabel="Delete category"
+  [busy]="deleting()"
+  (confirmed)="confirmDelete()"
+  (cancelled)="pendingDelete.set(null)"
+/>

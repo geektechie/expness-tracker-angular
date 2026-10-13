@@ -1,0 +1,146 @@
+<div class="page">
+  <app-page-header title="Reports" subtitle="Where the money went, for any period." />
+
+  <div class="toolbar" role="group" aria-label="Report filters">
+    <app-date-range-filter [range]="range()" (rangeChange)="changeRange($event)" />
+
+    <div class="segmented" role="group" aria-label="Chart granularity">
+      <button
+        type="button"
+        [attr.aria-pressed]="granularity() === 'Daily'"
+        [disabled]="!dailyAvailable()"
+        [attr.title]="dailyAvailable() ? null : 'Daily is available for ranges up to ' + dailyMaxDays + ' days'"
+        (click)="chooseGranularity('Daily')"
+      >
+        Daily
+      </button>
+      <button
+        type="button"
+        [attr.aria-pressed]="granularity() === 'Monthly'"
+        (click)="chooseGranularity('Monthly')"
+      >
+        Monthly
+      </button>
+    </div>
+  </div>
+
+  <app-error-banner [error]="error()" (retry)="retry()" />
+
+  @if (initialLoad() && !error()) {
+    <p class="loading-note" role="status">Loading the report…</p>
+  }
+
+  @if (!error()) {
+    @if (report(); as r) {
+      <section
+        class="kpi-row"
+        [class.is-refreshing]="summaryRefreshing()"
+        [attr.aria-busy]="summaryRefreshing()"
+        aria-label="Totals"
+      >
+        <app-stat-tile
+          class="hero-tile"
+          label="Total spent"
+          [value]="r.summary.total | money: r.summary.currency"
+          [hint]="rangeLabel()"
+          [hero]="true"
+        />
+        <app-stat-tile
+          label="Daily average"
+          [value]="r.summary.dailyAverage | money: r.summary.currency"
+          [hint]="averageHint()"
+        />
+        <app-stat-tile label="Expenses" [value]="countValue()" [hint]="countHint()" />
+        <app-stat-tile
+          label="Largest expense"
+          [value]="r.summary.largestExpense | money: r.summary.currency"
+          [hint]="largestHint()"
+        />
+      </section>
+
+      <section class="card" aria-labelledby="reports-trend-title" [attr.aria-busy]="refreshing()">
+        <header class="card-header">
+          <div>
+            <h2 class="card-title" id="reports-trend-title">Spending over time</h2>
+
+            <p class="card-subtitle">{{ trendSubtitle() }}</p>
+          </div>
+        </header>
+
+        <app-column-chart
+          [points]="r.trend.points"
+          [granularity]="r.trend.granularity"
+          [currency]="r.trend.currency"
+          [height]="280"
+          [loading]="refreshing()"
+        />
+      </section>
+
+      <div
+        class="grid grid-cols-2 breakdowns"
+        [class.is-refreshing]="summaryRefreshing()"
+        [attr.aria-busy]="summaryRefreshing()"
+      >
+        <section class="card breakdown" aria-labelledby="reports-category-title">
+          <header class="card-header">
+            <div>
+              <h2 class="card-title" id="reports-category-title">By category</h2>
+              <p class="card-subtitle">Share of the period's spending</p>
+            </div>
+          </header>
+
+          @if (hasSpending()) {
+            <app-bar-list
+              [items]="categoryItems()"
+              [currency]="r.summary.currency"
+              label="Spending by category"
+              [maxRows]="8"
+            />
+
+            <footer class="card-footer">
+              <a
+                class="footer-link"
+                routerLink="/expenses"
+                [queryParams]="{ from: r.summary.from, to: r.summary.to }"
+              >
+                See these expenses
+                <app-icon name="chevron-right" [size]="15" />
+              </a>
+            </footer>
+          } @else {
+            <app-empty-state
+              icon="chart"
+              title="No spending in this period"
+              message="Choose a longer range above, or record an expense."
+              [compact]="true"
+            >
+              <a class="btn btn-secondary btn-sm" routerLink="/expenses" [queryParams]="newExpenseParams">
+                <app-icon name="plus" [size]="15" />
+                New expense
+              </a>
+            </app-empty-state>
+          }
+        </section>
+
+        <section class="card breakdown" aria-labelledby="reports-payment-title">
+          <header class="card-header">
+            <div>
+              <h2 class="card-title" id="reports-payment-title">By payment method</h2>
+              <p class="card-subtitle">How it was paid</p>
+            </div>
+          </header>
+
+          @if (hasSpending()) {
+            <app-bar-list
+              [items]="paymentMethodItems()"
+              [currency]="r.summary.currency"
+              label="Spending by payment method"
+            />
+          } @else {
+            <app-empty-state icon="wallet" title="No spending in this period" [compact]="true" />
+          }
+        </section>
+      </div>
+    }
+  }
+</div>

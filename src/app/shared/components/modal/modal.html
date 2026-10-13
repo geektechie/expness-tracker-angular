@@ -1,0 +1,36 @@
+<dialog
+  #dialog
+  class="modal"
+  [class.size-sm]="size() === 'sm'"
+  [class.size-lg]="size() === 'lg'"
+  [attr.aria-labelledby]="titleId"
+  [attr.aria-describedby]="describedBy()"
+  [attr.role]="dialogRole() === 'alertdialog' ? 'alertdialog' : null"
+  (cancel)="onEscape($event)"
+  (close)="onNativeClose()"
+  (pointerdown)="onDialogPointerDown($event)"
+  (click)="onDialogClick($event)"
+>
+  <div class="panel">
+    <header class="header">
+      <h2 [id]="titleId">{{ title() }}</h2>
+      <button
+        type="button"
+        class="btn btn-ghost btn-icon btn-sm"
+        aria-label="Close"
+        [disabled]="!dismissible()"
+        (click)="requestClose()"
+      >
+        <app-icon name="x" />
+      </button>
+    </header>
+
+    <div class="body">
+      <ng-content />
+    </div>
+
+    <footer class="footer">
+      <ng-content select="[modal-footer]" />
+    </footer>
+  </div>
+</dialog>
